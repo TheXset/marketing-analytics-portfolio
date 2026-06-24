@@ -1,3 +1,11 @@
+-- =============================================
+-- Задача: медианные месячные траты постоянных клиентов
+-- Датасет: data/coffee_sales.csv
+-- Таблица: COFFEE_SALES (SALE_DTTM, CARD_NUMBER, COFFEE_TYPE, PRICE, DISCOUNT, GROCERY_FLG)
+-- Постоянный клиент: покупал более чем в одном месяце
+-- Траты считаются с учётом скидки: PRICE * (1 - DISCOUNT / 100.0)
+-- =============================================
+
 WITH regular_clients AS (
     SELECT CARD_NUMBER
     FROM COFFEE_SALES
@@ -7,7 +15,7 @@ WITH regular_clients AS (
 monthly_spend AS (
     SELECT
         cs.CARD_NUMBER,
-        DATE_TRUNC('month', cs.SALE_DTTM) AS month,
+        DATE_TRUNC('month', cs.SALE_DTTM)         AS month,
         SUM(cs.PRICE * (1 - cs.DISCOUNT / 100.0)) AS total_spend
     FROM COFFEE_SALES cs
     JOIN regular_clients rc ON cs.CARD_NUMBER = rc.CARD_NUMBER
@@ -18,7 +26,7 @@ ranked AS (
         month,
         total_spend,
         ROW_NUMBER() OVER (PARTITION BY month ORDER BY total_spend) AS rn,
-        COUNT(*)     OVER (PARTITION BY month) AS podschet
+        COUNT(*)     OVER (PARTITION BY month)                      AS podschet
     FROM monthly_spend
 )
 SELECT
